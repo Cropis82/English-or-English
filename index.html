@@ -5,12 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Group 5: Human Security & Personal Agency</title>
     <style>
+        /* CSS Variables for Light/Dark Mode */
         :root {
             --primary: #2c3e50;
-            --accent: #e67e22;
+            --accent: #e67e22; /* Orange */
             --bg: #f4f7f6;
-            --text: #333;
+            --text: #333333;
             --white: #ffffff;
+            --shadow: rgba(0,0,0,0.05);
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --primary: #85c1e9;
+            --accent: #f39c12; /* Lighter Orange for dark mode */
+            --bg: #1a1a1a;
+            --text: #e0e0e0;
+            --white: #2d2d2d;
+            --shadow: rgba(0,0,0,0.3);
         }
 
         body {
@@ -20,6 +32,19 @@
             background-color: var(--bg);
             margin: 0;
             padding: 0;
+            transition: var(--transition);
+        }
+
+        /* Reading Progress Bar */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: var(--accent);
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.1s;
         }
 
         .container {
@@ -33,17 +58,39 @@
             padding-bottom: 40px;
             border-bottom: 3px solid var(--accent);
             margin-bottom: 40px;
+            position: relative;
+        }
+
+        /* Theme Toggle Button */
+        #theme-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+
+        #theme-toggle:hover {
+            transform: scale(1.05);
+            background: var(--accent);
         }
 
         h1 {
             color: var(--primary);
             font-size: 2.5rem;
             margin-bottom: 10px;
+            transition: var(--transition);
         }
 
         .subtitle {
             font-style: italic;
-            color: #666;
+            color: #888;
             font-size: 1.1rem;
         }
 
@@ -53,34 +100,56 @@
             letter-spacing: 1px;
         }
 
+        /* Sections and Scroll Animation */
         section {
             background: var(--white);
             padding: 30px;
             margin-bottom: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px var(--shadow);
+            transition: var(--transition), opacity 0.6s ease, transform 0.6s ease;
+            opacity: 0;
+            transform: translateY(20px);
         }
 
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Accordion Functionality */
         h2 {
             color: var(--primary);
             border-left: 5px solid var(--accent);
             padding-left: 15px;
             margin-top: 0;
-        }
-
-        .keywords {
+            cursor: pointer;
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 20px;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
         }
 
-        .keyword-tag {
-            background: var(--primary);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
+        h2::after {
+            content: '▼';
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        h2.active::after {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, opacity 0.4s ease;
+            opacity: 1;
+        }
+
+        .section-content.collapsed {
+            max-height: 0;
+            opacity: 0;
         }
 
         .vs-box {
@@ -93,12 +162,80 @@
         .vs-item {
             padding: 20px;
             border-radius: 6px;
-            background: #f9f9f9;
+            background: var(--bg);
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .vs-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 4px 10px var(--shadow);
         }
 
         .vs-item h3 {
             margin-top: 0;
             color: var(--accent);
+        }
+
+        blockquote {
+            background: var(--bg);
+            border-left: 4px solid var(--accent);
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 0 4px 4px 0;
+            font-style: italic;
+        }
+
+        /* Keyword Highlighting */
+        .highlight {
+            background-color: var(--accent);
+            color: #fff;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(230, 126, 34, 0.4);
+        }
+
+        .keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .keyword-tag {
+            background: var(--primary);
+            color: var(--bg);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+            user-select: none;
+            border: 2px solid transparent;
+        }
+
+        .keyword-tag:hover {
+            background: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .keyword-tag.active-tag {
+            background: var(--accent);
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .keyword-tag.pulsate {
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); background: var(--accent); }
+            100% { transform: scale(1); }
         }
 
         footer {
@@ -112,82 +249,193 @@
             .vs-box {
                 grid-template-columns: 1fr;
             }
+            #theme-toggle {
+                position: relative;
+                display: block;
+                margin: 0 auto 20px auto;
+            }
         }
     </style>
 </head>
 <body>
 
+<div id="progress-bar"></div>
+
 <div class="container">
     <header>
+        <button id="theme-toggle">🌙 Dark Mode</button>
         <h1>Senzatomica: The Human Spirit</h1>
-        <p class="group-members">GRAZIANO — GONZALES — GIANNOTTIS</p>
+        <p class="group-members">GRAZIANO — GONZALEZ — GIANNOTTIS</p>
         <p class="subtitle">Group 5: Human Security & Personal Agency (Philosophy)</p>
     </header>
 
     <section>
         <h2>1. The Paradigm Shift: Human vs. State Security</h2>
-        <p>The core of the <em>Senzatomica</em> philosophy lies in redefining what it means to be "safe." Traditionally, security is seen through the lens of the State—borders, weapons, and military deterrence. Human Security flips this script.</p>
-        
-        <div class="vs-box">
-            <div class="vs-item">
-                <h3>State Security</h3>
-                <p>Focuses on territorial integrity, nuclear deterrence, and military strength. It often assumes that "more weapons = more safety."</p>
-            </div>
-            <div class="vs-item">
-                <h3>Human Security</h3>
-                <p>Focuses on the individual. It prioritizes freedom from fear and freedom from want—addressing health, environment, and dignity.</p>
+        <div class="section-content">
+            <p>The core of the <em>Senzatomica</em> philosophy lies in redefining what it means to be "safe." Traditionally, security is seen through the lens of the State—borders, weapons, and military deterrence. Human Security flips this script.</p>
+            
+            <div class="vs-box">
+                <div class="vs-item">
+                    <h3>State Security</h3>
+                    <p>Focuses on territorial integrity, nuclear deterrence, and military strength. It often assumes that "more weapons = more safety."</p>
+                </div>
+                <div class="vs-item">
+                    <h3>Human Security</h3>
+                    <p>Focuses on the individual. It prioritizes freedom from fear and freedom from want—addressing health, environment, and dignity.</p>
+                </div>
             </div>
         </div>
     </section>
 
-    
-
     <section>
         <h2>2. Ordinary People & Global Politics</h2>
-        <p>How can one person in a crowd change a nuclear policy? <em>Senzatomica</em> suggests that global politics is not an exclusive club for "experts."</p>
-        <ul>
-            <li><strong>Breaking the Myth of Powerlessness:</strong> By educating ourselves, we transform from passive observers into "protagonists" of history.</li>
-            <li><strong>Grassroots Influence:</strong> Civil society movements (like the one that led to the TPNW) prove that when enough individuals change their mindset, governments eventually follow.</li>
-            <li><strong>The Ripple Effect:</strong> A change in one person's spirit influences their family, their community, and eventually the global consensus.</li>
-        </ul>
+        <div class="section-content">
+            <p>How can one person in a crowd change a nuclear policy? <em>Senzatomica</em> suggests that global politics is not an exclusive club for "experts."</p>
+            <ul>
+                <li><strong>Breaking the Myth of Powerlessness:</strong> By educating ourselves, we transform from passive observers into "protagonists" of history.</li>
+                <li><strong>Grassroots Influence:</strong> Civil society movements (like the one that led to the TPNW) prove that when enough individuals change their mindset, governments eventually follow.</li>
+                <li><strong>The Ripple Effect:</strong> A change in one person's spirit influences their family, their community, and eventually the global consensus.</li>
+            </ul>
+        </div>
     </section>
 
     <section>
         <h2>3. Passive Peace vs. Active Peace</h2>
-        <p>Peace is not merely the interval between two wars. It is a creative process.</p>
-        <blockquote>
-            <strong>Passive Peace:</strong> The "absence of conflict." It is fragile because the underlying tensions and nuclear threats still exist.
-        </blockquote>
-        <blockquote>
-            <strong>Active Peace:</strong> The "creation of value." It involves dialogue, the courage to understand the "other," and the constant effort to build bridges where walls once stood.
-        </blockquote>
+        <div class="section-content">
+            <p>Peace is not merely the interval between two wars. It is a creative process.</p>
+            <blockquote>
+                <strong>Passive Peace:</strong> The "absence of conflict." It is fragile because the underlying tensions and nuclear threats still exist.
+            </blockquote>
+            <blockquote>
+                <strong>Active Peace:</strong> The "creation of value." It involves dialogue, the courage to understand the "other," and the constant effort to build bridges where walls once stood.
+            </blockquote>
+        </div>
     </section>
 
     <section>
         <h2>4. Applying the Message in Grugliasco/Turin</h2>
-        <p>The "Global" starts "Local." Here is how we bring the <em>Senzatomica</em> spirit to our streets:</p>
-        <ul>
-            <li><strong>Dialogue in the Piazza:</strong> Replacing digital echo chambers with real, empathetic conversations in our local neighborhoods.</li>
-            <li><strong>School Initiatives:</strong> Promoting workshops in Grugliasco schools that focus on non-violent conflict resolution.</li>
-            <li><strong>Civil Society:</strong> Supporting local grassroots movements that prioritize environmental and social dignity in the Turin metropolitan area.</li>
-        </ul>
+        <div class="section-content">
+            <p>The "Global" starts "Local." Here is how we bring the <em>Senzatomica</em> spirit to our streets:</p>
+            <ul>
+                <li><strong>Dialogue in the Piazza:</strong> Replacing digital echo chambers with real, empathetic conversations in our local neighborhoods.</li>
+                <li><strong>School Initiatives:</strong> Promoting workshops in Grugliasco schools that focus on non-violent conflict resolution.</li>
+                <li><strong>Civil Society:</strong> Supporting local grassroots movements that prioritize environmental and social dignity in the Turin metropolitan area.</li>
+            </ul>
+        </div>
     </section>
 
     <section>
-        <h3>Core Keywords</h3>
-        <div class="keywords">
-            <span class="keyword-tag">Empowerment</span>
-            <span class="keyword-tag">Human Security</span>
-            <span class="keyword-tag">Civil Society</span>
-            <span class="keyword-tag">Grassroots Movement</span>
-            <span class="keyword-tag">Inner Transformation</span>
+        <h2>Core Keywords</h2>
+        <div class="section-content">
+            <div class="keywords">
+                <span class="keyword-tag">Human Security</span>
+                <span class="keyword-tag">Civil Society</span>
+                <span class="keyword-tag">Grassroots</span>
+            </div>
+            <p style="font-size: 0.8rem; color: #888; margin-top: 15px;"><em>*Click tags to highlight them in the text. Click again to remove.</em></p>
         </div>
     </section>
 
     <footer>
-        <p>&copy; 2024 - Philosophy & Human Agency Presentation - Grugliasco / Turin</p>
+        <p>&copy; 2026 - Philosophy & Human Agency Presentation - ITTS Carlo Grassi</p>
     </footer>
 </div>
+
+<script>
+    // 1. Theme Toggle Logic
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            document.documentElement.removeAttribute('data-theme');
+            themeToggleBtn.textContent = '🌙 Dark Mode';
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggleBtn.textContent = '☀️ Light Mode';
+        }
+    });
+
+    // 2. Reading Progress Bar
+    window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        document.getElementById('progress-bar').style.width = scrolled + "%";
+    });
+
+    // 3. Scroll Reveal Animation
+    const sections = document.querySelectorAll('section');
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    sections.forEach(section => {
+        observer.observe(section);
+    });
+
+    // 4. Accordion Functionality for ALL H2 tags
+    const headers = document.querySelectorAll('h2');
+    headers.forEach(header => {
+        header.addEventListener('click', () => {
+            header.classList.toggle('active');
+            const content = header.nextElementSibling;
+            content.classList.toggle('collapsed');
+        });
+    });
+
+    // 5. Interactive Text Highlighting
+    // Grab all the text elements where we want to allow highlighting
+    const textElements = document.querySelectorAll('.section-content p, .section-content li, .section-content blockquote, .vs-item h3, .vs-item p');
+    
+    // Save the original HTML state so we can easily revert it
+    textElements.forEach(el => {
+        el.setAttribute('data-original', el.innerHTML);
+    });
+
+    let currentActiveKeyword = null;
+    const tags = document.querySelectorAll('.keyword-tag');
+
+    tags.forEach(tag => {
+        tag.addEventListener('click', function() {
+            const keyword = this.innerText;
+
+            // Step A: Reset all text to its original, un-highlighted state
+            textElements.forEach(el => {
+                el.innerHTML = el.getAttribute('data-original');
+            });
+
+            // Step B: Reset styles on all keyword buttons
+            tags.forEach(t => t.classList.remove('active-tag', 'pulsate'));
+
+            // Step C: Check if we are turning the highlight ON or OFF
+            if (currentActiveKeyword === keyword) {
+                // If clicking the same keyword, just turn it off
+                currentActiveKeyword = null;
+            } else {
+                // Turn it on
+                currentActiveKeyword = keyword;
+                
+                // Animate the clicked button
+                void this.offsetWidth; // Trigger reflow to restart CSS animation
+                this.classList.add('pulsate', 'active-tag');
+
+                // Apply the highlight to the text safely (ignoring HTML tags)
+                // The regex ensures we don't accidentally replace text inside existing HTML tags like <strong> or <em>
+                const safeRegex = new RegExp(`(?![^<]*>)(${keyword})`, 'gi');
+                
+                textElements.forEach(el => {
+                    const originalHTML = el.getAttribute('data-original');
+                    // Wrap the matched keyword in our highlight span
+                    el.innerHTML = originalHTML.replace(safeRegex, '<span class="highlight">$1</span>');
+                });
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
